@@ -58,7 +58,8 @@ class PKCS7:
     def get0_signers(self, certs, flags = 0):      
         return X509.X509_Stack(m2.pkcs7_get0_signers(self.pkcs7,
                                                      certs.stack, flags), 1)
-
+    def get_certs(self, certs):
+        return X509.X509_Stack(m2.pkcs7_get_certs(self.pkcs7, certs.stack))
 
 def load_pkcs7(p7file):
     bio = m2.bio_new_file(p7file, 'r')

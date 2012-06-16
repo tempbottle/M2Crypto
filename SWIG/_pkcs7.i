@@ -237,5 +237,19 @@ STACK_OF(X509) *pkcs7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs, int flags) 
     return PKCS7_get0_signers(p7, certs, flags);      
 }
 
+/* return STACK_OF(X509)* */     
+STACK_OF(X509) *pkcs7_get_certs(PKCS7 *p7, STACK_OF(X509) *certs) {     
+    if(p7){
+        int type = OBJ_obj2nid(p7->type);
+        if(type==NID_pkcs7_signed) {
+            certs = p7->d.sign->cert;
+        }else if(type==NID_pkcs7_signedAndEnveloped) {
+            certs = p7->d.signed_and_enveloped->cert;
+        }
+    }
+    return certs;
+}
+
+
 %}
 
