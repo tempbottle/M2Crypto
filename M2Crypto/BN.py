@@ -45,3 +45,6 @@ def randfname(length):
         fname += [letters[m2.bn_rand_range(lettersLen)]]
         
     return ''.join(fname)
+
+def generate_prime(bits, safe, add, rem):
+    return m2.bn_generate_prime_ex(bits, safe, add, rem)

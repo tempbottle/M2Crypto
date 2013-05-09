@@ -111,4 +111,81 @@ PyObject *bn_rand_range(PyObject *range)
     return ret;
 }
 
+PyObject* PyLong_FromBN(BIGNUM* bn){
+    char* hex = NULL;
+    PyObject * ret = NULL;
+    BN_CTX *ctx = BN_CTX_new();
+    if (ctx == NULL) 
+        goto err_out;
+    hex = BN_bn2hex(bn);
+    if (!hex) {
+        PyErr_SetString(PyExc_Exception, ERR_reason_error_string(ERR_get_error()));
+        goto err_out;
+    }
+    ret = PyLong_FromString(hex, NULL, 16); 
+err_out:
+    if (hex) OPENSSL_free(hex);
+    if(ctx) BN_CTX_free(ctx);
+    return ret;
+}
+
+BIGNUM* PyLong_AsBN(PyObject* l) {
+    char* hex = NULL;
+    BIGNUM * ret = NULL;
+    PyObject * ohex = NULL;
+    BN_CTX *ctx = BN_CTX_new();
+    
+    if (ctx == NULL) 
+        goto err_out;
+    ohex = _PyLong_Format(l, 16, 0, 0);
+
+    if (!ohex) {
+        PyErr_SetString(PyExc_Exception, "PyLong_AsBN error.");
+        goto err_out;
+    }
+    BN_hex2bn(&ret, PyString_AsString(ohex));
+err_out:
+    if (ohex) Py_DECREF(ohex);
+    if (ctx) BN_CTX_free(ctx);
+    return ret; 
+}
+
+PyObject *bn_generate_prime_ex(int bits, int safe, PyObject* add /*pylong*/, PyObject* rem /*pylong*/){
+    PyObject * ret = NULL;
+    char *hex = NULL;
+    BIGNUM * bn_ret = NULL;
+    BN_CTX *ctx = NULL;
+    BIGNUM * bn_add = NULL;
+    BIGNUM * bn_rem = NULL;
+    ctx = BN_CTX_new();
+    if (ctx==NULL) {
+        goto err_out;
+    }
+
+    bn_ret = BN_new();
+    if (bn_ret==NULL) {
+        goto err_out;
+    }
+    
+    if (PyLong_CheckExact(add))
+        bn_add = PyLong_AsBN(add);
+    if (PyLong_CheckExact(rem))
+        bn_rem = PyLong_AsBN(rem);
+
+    if (!BN_generate_prime_ex(bn_ret, bits, safe, bn_add, bn_rem, NULL)){
+        PyErr_SetString(PyExc_Exception, ERR_reason_error_string(ERR_get_error()));
+        goto err_out;
+    }
+    
+    ret = PyLong_FromBN(bn_ret);
+err_out:
+    
+    if(hex) OPENSSL_free(hex);
+    if(bn_ret) BN_free(bn_ret);
+    if(bn_add) BN_free(bn_add);
+    if(bn_rem) BN_free(bn_rem);
+    if(ctx) BN_CTX_free(ctx);
+   
+    return ret;
+}
 %}
