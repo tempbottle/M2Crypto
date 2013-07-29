@@ -259,6 +259,16 @@ class RSA:
         return m2.rsa_verify(self.rsa, data, signature, digest_type) 
 
 
+class RSA_Engine(RSA):
+    def __init__(self, rsa, _pyfree=0):
+        assert m2.rsa_type_check(rsa), "'rsa' type error"
+        self.rsa = rsa
+        self._pyfree = _pyfree
+        
+    def check_key(self):
+        return 1
+        
+
 class RSA_pub(RSA):
 
     """
