@@ -90,8 +90,23 @@ class Engine:
         if not cptr:
             raise EngineError("Certificate or card not found")
         return X509.X509(cptr, _pyfree = 1)
+        
 
-
+class PKCS11_Engine(Engine):
+    def __init__(self, id = None, _ptr = None, _pyfree = 1):
+        if not _ptr and not id:
+            raise ValueError("No engine id specified")
+        self._ptr = _ptr
+        if not self._ptr:
+            self._ptr = m2.engine_by_id(id)
+            if not self._ptr:
+                raise ValueError("Unknown engine: %s" % id)
+        self._pyfree = _pyfree
+        
+    def enum_slots(self):
+        return m2.engine_enum_slots(self._ptr)
+        
+  
 def load_dynamic_engine(id, sopath):
     """Load and return dymanic engine from sopath and assign id to it"""
     m2.engine_load_dynamic()

@@ -185,6 +185,36 @@ X509 * engine_load_certificate(ENGINE *e, const char * slot) {
     }
     return cbd.cert;
 }
+
+PyObject * engine_enum_slots(ENGINE* e) {
+    char* slot_ids = NULL;
+    PyObject* ret = NULL;
+    if(!ENGINE_ctrl_cmd(e, "ENUM_SLOTS", 0, &slot_ids, NULL, 0)){
+        PyErr_SetString(_engine_err, "cannot enum slots");
+        return NULL;
+    }
+    if (slot_ids!=NULL){
+        ret = PyString_FromString((const char*)slot_ids);
+        //printf("p=&slot_ids=0x%08x,*p=slot_ids=0x%08x\n", &slot_ids, slot_ids);
+        free(slot_ids);
+    }
+    return ret;        
+}
+
+STACK_OF(X509) * engine_enum_certs_in_slot(ENGINE* e, const char* slotid){
+    struct {
+        const char* slotid;
+        STACK_OF(X509) * certs;
+    } cbd;
+    cbd.slotid = slotid;
+    cbd.certs = NULL;
+    if (!ENGINE_ctrl_cmd(e, "ENUM_CERTS_IN_SLOT", 0, &cbd, NULL, 0)){
+        PyErr_SetString(_engine_err, "cannot enum certs in slot");
+        return NULL;
+    }
+    return cbd.certs;
+}
+
 %}
 
 /* These flags are used to control combinations of algorithm (methods)
