@@ -56,6 +56,9 @@ RSA *rsa_read_key(BIO *f, PyObject *pyfunc) {
     Py_BEGIN_ALLOW_THREADS
     rsa = PEM_read_bio_RSAPrivateKey(f, NULL, passphrase_callback, (void *)pyfunc);
     Py_END_ALLOW_THREADS
+	if(!rsa){
+		ERR_print_errors_fp(stderr);
+	}
     Py_DECREF(pyfunc);
     return rsa;
 }
@@ -128,6 +131,7 @@ PyObject *rsa_set_e(RSA *rsa, PyObject *value) {
 
     if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     if (rsa->e)
@@ -147,6 +151,7 @@ PyObject *rsa_set_n(RSA *rsa, PyObject *value) {
 
     if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     if (rsa->n)
@@ -166,6 +171,7 @@ PyObject *rsa_set_e_bin(RSA *rsa, PyObject *value) {
 
     if (!(bn = BN_bin2bn((unsigned char *)vbuf, vlen, NULL))) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     if (rsa->e)
@@ -185,6 +191,7 @@ PyObject *rsa_set_n_bin(RSA *rsa, PyObject *value) {
 
     if (!(bn = BN_bin2bn((unsigned char *)vbuf, vlen, NULL))) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     if (rsa->n)
@@ -212,6 +219,7 @@ PyObject *rsa_private_encrypt(RSA *rsa, PyObject *from, int padding) {
     if (tlen == -1) {
         PyMem_Free(tbuf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     ret = PyString_FromStringAndSize((const char *)tbuf, tlen);
@@ -237,6 +245,7 @@ PyObject *rsa_public_decrypt(RSA *rsa, PyObject *from, int padding) {
     if (tlen == -1) {
         PyMem_Free(tbuf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     ret = PyString_FromStringAndSize((const char *)tbuf, tlen);
@@ -262,6 +271,7 @@ PyObject *rsa_public_encrypt(RSA *rsa, PyObject *from, int padding) {
     if (tlen == -1) {
         PyMem_Free(tbuf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     ret = PyString_FromStringAndSize((const char *)tbuf, tlen);
@@ -287,6 +297,7 @@ PyObject *rsa_private_decrypt(RSA *rsa, PyObject *from, int padding) {
     if (tlen == -1) {
         PyMem_Free(tbuf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     ret = PyString_FromStringAndSize((const char *)tbuf, tlen);
@@ -321,6 +332,7 @@ PyObject *rsa_padding_add_pkcs1_pss(RSA *rsa, PyObject *digest, EVP_MD *hash, in
         OPENSSL_cleanse(tbuf, tlen);
         OPENSSL_free(tbuf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     ret = PyString_FromStringAndSize((const char *)tbuf, tlen);
@@ -348,6 +360,9 @@ int rsa_verify_pkcs1_pss(RSA *rsa, PyObject *digest, PyObject *signature, EVP_MD
         hash,
         (unsigned char *)sbuf,
         salt_length);
+	if(ret!=0){
+		ERR_print_errors_fp(stderr);
+	}
 
     return ret;
 }
@@ -377,6 +392,7 @@ PyObject *rsa_sign(RSA *rsa, PyObject *py_digest_string, int method_type) {
     if (!ret) {
         PyMem_Free(sign_buf);
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
         return NULL;
     }
     signature =  PyString_FromStringAndSize((const char*) sign_buf, buf_len);
@@ -408,6 +424,7 @@ int rsa_verify(RSA *rsa, PyObject *py_verify_string, PyObject* py_sign_string, i
                      sign_len, rsa);
     if (!ret) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
     } 
     return ret;
 }
@@ -429,8 +446,10 @@ RSA *rsa_generate_key(int bits, unsigned long e, PyObject *pyfunc) {
     Py_INCREF(pyfunc);
     rsa = RSA_generate_key(bits, e, genrsa_callback, (void *)pyfunc);
     Py_DECREF(pyfunc);
-    if (!rsa) 
+    if (!rsa) {
         PyErr_SetString(_rsa_err, ERR_reason_error_string(ERR_get_error()));
+		ERR_print_errors_fp(stderr);
+	}
     return rsa;
 }
 
