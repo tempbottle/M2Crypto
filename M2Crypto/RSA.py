@@ -41,6 +41,16 @@ class RSA:
             return m2.rsa_get_n(self.rsa)        
 		elif name == 'd':
             return m2.rsa_get_d(self.rsa)
+		elif name == 'p':
+            return m2.rsa_get_p(self.rsa)
+		elif name == 'q':
+            return m2.rsa_get_q(self.rsa)
+		elif name == 'dmp1':
+            return m2.rsa_get_dmp1(self.rsa)
+		elif name == 'dmq1':
+            return m2.rsa_get_dmq1(self.rsa)
+		elif name == 'iqmp':
+            return m2.rsa_get_iqmp(self.rsa)
         else:
             raise AttributeError
 

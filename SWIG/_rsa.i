@@ -129,6 +129,46 @@ PyObject *rsa_get_d(RSA *rsa) {
     return bn_to_mpi(rsa->d);
 }
 
+PyObject *rsa_get_p(RSA *rsa) {
+    if (!rsa->p) {
+        PyErr_SetString(_rsa_err, "'p' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->p);
+}
+
+PyObject *rsa_get_q(RSA *rsa) {
+    if (!rsa->q) {
+        PyErr_SetString(_rsa_err, "'q' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->q);
+}
+
+PyObject *rsa_get_dmp1(RSA *rsa) {
+    if (!rsa->dmp1) {
+        PyErr_SetString(_rsa_err, "'dmp1' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->dmp1);
+}
+
+PyObject *rsa_get_dmq1(RSA *rsa) {
+    if (!rsa->dmq1) {
+        PyErr_SetString(_rsa_err, "'dmq1' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->dmq1);
+}
+
+PyObject *rsa_get_iqmp(RSA *rsa) {
+    if (!rsa->iqmp) {
+        PyErr_SetString(_rsa_err, "'iqmp' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->iqmp);
+}
+
 PyObject *rsa_set_e(RSA *rsa, PyObject *value) {
     BIGNUM *bn;
     const void *vbuf;
