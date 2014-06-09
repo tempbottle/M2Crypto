@@ -36,11 +36,12 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # openssl is the attribute corresponding to openssl directory prefix
         # command line option
         if os.name == 'nt':
-            self.libraries = ['ssleay32', 'libeay32']
-            self.openssl = 'c:\\pkg'
+            self.libraries = ['ssleay32', 'libeay32','kernel32','advapi32','ws2_32','crypt32','user32','gdi32']
+            self.openssl = 'E:\\CppLibs\\openssl-1.0.1h'
+            self.compile_options = [ '/nologo', '/Ox', '/MT', '/W3', '/GX' ,'/DNDEBUG']
         else:
             self.libraries = ['ssl', 'crypto']
-            self.openssl = '/usr'
+            self.openssl = '/usr/local/ssl'
        
     
     def finalize_options(self):
@@ -49,8 +50,9 @@ class _M2CryptoBuildExt(build_ext.build_ext):
 
         build_ext.build_ext.finalize_options(self)
 
-        opensslIncludeDir = os.path.join(self.openssl, 'include')
-        opensslLibraryDir = os.path.join(self.openssl, 'lib')
+        opensslIncludeDir = os.path.join(self.openssl, 'inc32')
+        opensslLibraryDir = os.path.join(self.openssl, 'out32')
+        #opensslLibraryDir = os.path.join(".")
         
         self.swig_opts = ['-I%s' % i for i in self.include_dirs + \
                           [opensslIncludeDir]]
