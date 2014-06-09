@@ -38,7 +38,9 @@ class RSA:
         if name == 'e':
             return m2.rsa_get_e(self.rsa)
         elif name == 'n':
-            return m2.rsa_get_n(self.rsa)
+            return m2.rsa_get_n(self.rsa)        
+		elif name == 'd':
+            return m2.rsa_get_d(self.rsa)
         else:
             raise AttributeError
 

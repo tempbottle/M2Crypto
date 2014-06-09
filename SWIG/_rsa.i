@@ -121,6 +121,14 @@ PyObject *rsa_get_n(RSA *rsa) {
     return bn_to_mpi(rsa->n);
 }
 
+PyObject *rsa_get_d(RSA *rsa) {
+    if (!rsa->d) {
+        PyErr_SetString(_rsa_err, "'d' is unset");
+        return NULL;
+    }
+    return bn_to_mpi(rsa->d);
+}
+
 PyObject *rsa_set_e(RSA *rsa, PyObject *value) {
     BIGNUM *bn;
     const void *vbuf;
