@@ -118,6 +118,7 @@ PyObject *pkcs7_verify1(PKCS7 *pkcs7, STACK_OF(X509) *stack, X509_STORE *store, 
     res = PKCS7_verify(pkcs7, stack, store, data, bio, flags);
     Py_END_ALLOW_THREADS
     if (!res) {
+        ERR_print_errors_fp(stderr);
         PyErr_SetString(_pkcs7_err, ERR_reason_error_string(ERR_get_error()));
         BIO_free(bio);
         return NULL;
@@ -248,6 +249,70 @@ STACK_OF(X509) *pkcs7_get_certs(PKCS7 *p7, STACK_OF(X509) *certs) {
         }
     }
     return certs;
+}
+%}
+
+%inline %{
+PKCS7 * pkcs7_sign_raw1(X509* cert, EVP_PKEY* pkey, STACK_OF(X509) *certs, BIO* data_bio, int flags ,int md){
+    PKCS7_SIGNER_INFO* info = NULL;
+    BIO* p7bio = NULL;
+    int outlen = 0;
+    char* outbuf = NULL;
+    EVP_MD* MD = NULL;
+    int i = 0;
+    PKCS7* p7 = PKCS7_new();
+	if (p7 == NULL){
+		PyErr_SetString(PyExc_MemoryError, "pkcs7_sign_raw1");
+		return NULL;
+	}
+    outlen = BIO_ctrl_pending(data_bio);
+    outbuf = NULL;
+    if (!(outbuf=(char *)PyMem_Malloc(outlen))) {
+        PyErr_SetString(PyExc_MemoryError, "pkcs7_sign_raw1");
+        return NULL;
+    }
+    BIO_read(data_bio, outbuf, outlen);
+
+    switch(md){
+        case NID_sha1: MD = EVP_sha1(); break;
+        case NID_sha224: MD = EVP_sha224(); break;
+        case NID_sha256: MD = EVP_sha256(); break;
+        case NID_sha384: MD = EVP_sha384(); break;
+        case NID_sha512: MD = EVP_sha512(); break;
+        case NID_md5: MD = EVP_md5(); break;
+        case NID_ripemd160: MD = EVP_ripemd160(); break;
+        default: MD = EVP_sha1(); break;
+    }
+    
+	PKCS7_set_type(p7, NID_pkcs7_signed);
+	PKCS7_content_new(p7, NID_pkcs7_data);
+	PKCS7_set_detached(p7, 1);
+	info = PKCS7_add_signature(p7, cert, pkey, MD);
+	if (info == NULL){
+        goto outerr;
+	}
+    
+    for(i = 0; i < sk_X509_num(certs); i++) {
+		if (!PKCS7_add_certificate(p7, sk_X509_value(certs, i))) {
+            goto outerr;
+		}
+	}
+	
+	p7bio = PKCS7_dataInit(p7, NULL);
+	if (p7bio == NULL){
+		goto outerr;
+	}
+    
+	BIO_write(p7bio, outbuf, outlen);
+	PKCS7_dataFinal(p7, p7bio);
+	return p7;
+    
+outerr:{
+        ERR_print_errors_fp(stderr);
+        PyErr_SetString(_pkcs7_err, ERR_reason_error_string(ERR_get_error()));
+        PKCS7_free(p7);
+        return NULL;
+    }   
 }
 
 

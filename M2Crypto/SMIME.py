@@ -204,7 +204,18 @@ class SMIME:
             if pkcs7 is None:
                 raise SMIME_Error(Err.get_error())
             return PKCS7(pkcs7, 1)
-
+ 
+    def sign_raw(self, data_bio, flags=0, md=m2.NID_sha1):
+        if not hasattr(self, 'pkey'):
+            raise SMIME_Error, 'no private key: use load_key()'
+        if hasattr(self, 'x509_stack'):
+            pkcs7 = m2.pkcs7_sign_raw1(self.x509._ptr(), self.pkey._ptr(), 
+                self.x509_stack._ptr(), data_bio._ptr(), flags, md)
+            if pkcs7 is None:
+                raise SMIME_Error(Err.get_error())
+            return PKCS7(pkcs7, 1)
+        else: return None
+            
     def verify(self, pkcs7, data_bio=None, flags=0):
         if not hasattr(self, 'x509_stack'):
             raise SMIME_Error, 'no signer certs: use set_x509_stack()'
